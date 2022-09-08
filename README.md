@@ -12,12 +12,11 @@ For a full example, see [pages/dynamic-height-list.tsx](https://github.com/Impac
 
 - `useIsIntersecting` In more complex cases where multiple states have to be considered in addition to the intersection, this hook should be used to get the intersection state directly.
 
-## Why **shared** Intersection observers?
+## Why shared Intersection observers?
 
 Performance benchmarks have shown that using one instance with one root element & many callbacks is much more performant than using one instance for each component that should be watched
 
 Read more here: https://www.bennadel.com/blog/3954-intersectionobserver-api-performance-many-vs-shared-in-angular-11-0-5.htm
-and here:
 
 ## Development
 
