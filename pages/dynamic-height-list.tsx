@@ -13,7 +13,6 @@ type DynamicHeightListProps = {
 };
 
 const InfoCard = ({ name }: InfoDataType) => {
-  console.log("render", name);
   return (
     <div
       style={{
@@ -39,6 +38,8 @@ const InfoCard = ({ name }: InfoDataType) => {
   );
 };
 
+const INTERSECTION_OBSERVER_THRESHOLD = [0, 0.25, 1];
+
 export default function DynamicHeightList({
   column1,
   column2,
@@ -56,7 +57,10 @@ export default function DynamicHeightList({
         }}
         aria-label="outer-container"
       >
-        <SharedIntersectionObserverContainer>
+        <SharedIntersectionObserverContainer
+          rootMargin="100px"
+          threshold={INTERSECTION_OBSERVER_THRESHOLD}
+        >
           <div
             style={{
               display: "flex",
@@ -75,7 +79,10 @@ export default function DynamicHeightList({
             ))}
           </div>
         </SharedIntersectionObserverContainer>
-        <SharedIntersectionObserverContainer>
+        <SharedIntersectionObserverContainer
+          rootMargin="100px"
+          threshold={INTERSECTION_OBSERVER_THRESHOLD}
+        >
           <div
             style={{
               display: "flex",

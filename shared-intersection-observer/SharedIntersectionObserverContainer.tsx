@@ -10,7 +10,7 @@ import { SharedIntersectionObserverContext } from "./SharedIntersectionObserverC
 import { ISharedIntersectionObserverPublicInterface } from "./types";
 
 const createSharedIntersectionObserver = (
-  root: HTMLElement
+  init: IntersectionObserverInit
 ): ISharedIntersectionObserverPublicInterface => {
   if (typeof window === "undefined") {
     return {
@@ -20,23 +20,15 @@ const createSharedIntersectionObserver = (
   }
   const listeners = new WeakMap();
 
-  let io = new IntersectionObserver(
-    (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (!listeners.has(entry.target)) {
-          return;
-        }
-        const callback = listeners.get(entry.target);
-        callback(entry);
-      });
-    },
-    {
-      root,
-      rootMargin: "10px",
-      // define how often the elements are observed based on the element position
-      threshold: [0, 0.25, 0.35, 0.5, 0.66, 0.75, 1],
-    }
-  );
+  let io = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+    entries.forEach((entry) => {
+      if (!listeners.has(entry.target)) {
+        return;
+      }
+      const callback = listeners.get(entry.target);
+      callback(entry);
+    });
+  }, init);
 
   const publicInterface = {
     observe: (
@@ -54,13 +46,18 @@ const createSharedIntersectionObserver = (
   return publicInterface;
 };
 
+type IntersectionObserverOptions = Pick<
+  IntersectionObserverInit,
+  "rootMargin" | "threshold"
+>;
+
 type SharedIntersectionObserverContainerProps = HTMLAttributes<HTMLDivElement> &
-  React.PropsWithChildren<{}>;
+  React.PropsWithChildren<IntersectionObserverOptions>;
 
 const SharedIntersectionObserverContainer = forwardRef<
   HTMLDivElement,
   SharedIntersectionObserverContainerProps
->(({ children, ...divProps }, forwardRef) => {
+>(({ children, rootMargin, threshold, ...divProps }, forwardRef) => {
   const [isMounted, setIsMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
@@ -76,11 +73,14 @@ const SharedIntersectionObserverContainer = forwardRef<
       console.error(`containerRef.current is null`);
       return;
     }
-    sharedInstanceRef.current = createSharedIntersectionObserver(
-      containerRef.current
-    );
+
+    sharedInstanceRef.current = createSharedIntersectionObserver({
+      root: containerRef.current,
+      rootMargin,
+      threshold,
+    });
     setIsMounted(true);
-  }, []);
+  }, [rootMargin, threshold]);
 
   return (
     <SharedIntersectionObserverContext.Provider
