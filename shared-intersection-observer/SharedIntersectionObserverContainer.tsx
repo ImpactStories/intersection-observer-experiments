@@ -1,4 +1,10 @@
-import { useState, useRef, useLayoutEffect, type HTMLAttributes } from "react";
+import {
+  useState,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+  type HTMLAttributes,
+} from "react";
 import useIsomorphicLayoutEffect from "./useIsomorphicLayoutEffect";
 import { SharedIntersectionObserverContext } from "./SharedIntersectionObserverContext";
 import { ISharedIntersectionObserverPublicInterface } from "./types";
@@ -48,18 +54,20 @@ const createSharedIntersectionObserver = (
   return publicInterface;
 };
 
-type SharedIntersectionObserverContainerProps = React.PropsWithChildren<{
-  className?: HTMLAttributes<HTMLDivElement>["className"];
-  style?: HTMLAttributes<HTMLDivElement>["style"];
-}>;
+type SharedIntersectionObserverContainerProps = HTMLAttributes<HTMLDivElement> &
+  React.PropsWithChildren<{}>;
 
-export const SharedIntersectionObserverContainer = ({
-  children,
-  className,
-  style,
-}: SharedIntersectionObserverContainerProps) => {
+const SharedIntersectionObserverContainer = forwardRef<
+  HTMLDivElement,
+  SharedIntersectionObserverContainerProps
+>(({ children, ...divProps }, forwardRef) => {
   const [isMounted, setIsMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
+    forwardRef,
+    () => containerRef.current
+  );
+
   const sharedInstanceRef =
     useRef<ISharedIntersectionObserverPublicInterface | null>(null);
 
@@ -78,9 +86,14 @@ export const SharedIntersectionObserverContainer = ({
     <SharedIntersectionObserverContext.Provider
       value={sharedInstanceRef.current}
     >
-      <div ref={containerRef} className={className} style={style}>
+      <div ref={containerRef} {...divProps}>
         {isMounted ? children : null}
       </div>
     </SharedIntersectionObserverContext.Provider>
   );
-};
+});
+
+SharedIntersectionObserverContainer.displayName =
+  "SharedIntersectionObserverContainer";
+
+export { SharedIntersectionObserverContainer };
